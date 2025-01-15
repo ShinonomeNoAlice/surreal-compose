@@ -19,3 +19,7 @@ Due to the ubiquitous nature of `docker-compose.yaml` and `config/`, I strongly 
     - Blank `*.rules.yml` for convenience.
 - Blank Grafana config files and directories (`grafana.ini`, `provisions/*`) provided to make Grafana shut up in the logs.
 
+## Grafana dashboards
+- Sample dashboards for TiKV can be found [here](https://github.com/tikv/tikv/tree/master/metrics/grafana).
+- Sample dashboards for PD can be found [here](https://github.com/tikv/pd/tree/master/metrics/grafana).
+- No sample dashboards for SurrealDB (*yet*).
