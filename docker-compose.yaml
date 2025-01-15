@@ -1,0 +1,322 @@
+services:
+  # Workaround for volume mount subpaths not existing, modified to our use case
+  # This is apparently a Docker issue limited to volume mounts. Bind mounts has its own quirks.
+  #
+  # Source: https://github.com/moby/moby/issues/47842#issuecomment-2249050939
+  volume_instantiation:
+    image: "alpine:latest"
+    container_name: util-volinit
+    command: |
+      mkdir -p /srv/data/pd /srv/data/tikv /srv/data/prometheus /srv/data/grafana \
+              /srv/logs/pd /srv/logs/tikv                      /srv/logs/grafana
+    volumes:
+      - data:/srv/data
+      - logs:/srv/logs
+
+  pd0:
+    container_name: db-pd0
+    hostname: pd0
+    image: pingcap/pd:v8.5.0
+    ports:
+      - "2379"
+    volumes:
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          subpath: pd
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          subpath: pd
+    command:
+      - --name=pd0
+      - --client-urls=http://0.0.0.0:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://pd0:2379
+      - --advertise-peer-urls=http://pd0:2380
+      - --initial-cluster=pd0=http://pd0:2380,pd1=http://pd1:2380,pd2=http://pd2:2380
+      - --data-dir=/data/pd/pd0
+      - --log-file=/logs/pd/pd0.log
+    restart: on-failure
+    depends_on:
+      volume_instantiation:
+        condition: service_completed_successfully
+    healthcheck:
+      test: /pd-ctl health | jq -e ".[] | select(.name == \"$(hostname)\").health"
+      start_period: 5s
+      retries: 5
+      timeout: 10s
+
+  pd1:
+    container_name: db-pd1
+    hostname: pd1
+    image: pingcap/pd:v8.5.0
+    ports:
+      - "2379"
+    volumes:
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          subpath: pd
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          subpath: pd
+    command:
+      - --name=pd1
+      - --client-urls=http://0.0.0.0:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://pd1:2379
+      - --advertise-peer-urls=http://pd1:2380
+      - --initial-cluster=pd0=http://pd0:2380,pd1=http://pd1:2380,pd2=http://pd2:2380
+      - --data-dir=/data/pd/pd1
+      - --log-file=/logs/pd/pd1.log
+    restart: on-failure
+    depends_on:
+      volume_instantiation:
+        condition: service_completed_successfully
+    healthcheck:
+      test: /pd-ctl health | jq -e ".[] | select(.name == \"$(hostname)\").health"
+      start_period: 5s
+      retries: 5
+      timeout: 10s
+
+  pd2:
+    container_name: db-pd2
+    hostname: pd2
+    image: pingcap/pd:v8.5.0
+    ports:
+      - "2379"
+    volumes:
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          subpath: pd
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          subpath: pd
+    command:
+      - --name=pd2
+      - --client-urls=http://0.0.0.0:2379
+      - --peer-urls=http://0.0.0.0:2380
+      - --advertise-client-urls=http://pd2:2379
+      - --advertise-peer-urls=http://pd2:2380
+      - --initial-cluster=pd0=http://pd0:2380,pd1=http://pd1:2380,pd2=http://pd2:2380
+      - --data-dir=/data/pd/pd2
+      - --log-file=/logs/pd/pd2.log
+    restart: on-failure
+    depends_on:
+      volume_instantiation:
+        condition: service_completed_successfully
+    healthcheck:
+      test: /pd-ctl health | jq -e ".[] | select(.name == \"$(hostname)\").health"
+      start_period: 5s
+      retries: 5
+      timeout: 10s
+
+  tikv0:
+    container_name: db-tikv0
+    hostname: tikv0
+    image: pingcap/tikv:v8.5.0
+    volumes:
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          subpath: tikv
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          subpath: tikv
+    command:
+      - --addr=0.0.0.0:20160
+      - --status-addr=0.0.0.0:20180
+      - --advertise-addr=tikv0:20160
+      - --advertise-status-addr=tikv0:20180
+      - --data-dir=/data/tikv/tikv0
+      - --pd=pd0:2379,pd1:2379,pd2:2379
+      - --log-file=/logs/tikv/tikv0.log
+    depends_on:
+      pd0:
+        condition: service_healthy
+      pd1:
+        condition: service_healthy
+      pd2:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+        test: /tikv-ctl --host $(hostname):20160 metrics
+        start_period: 5s
+        retries: 5
+        timeout: 10s
+
+  tikv1:
+    container_name: db-tikv1
+    hostname: tikv1
+    image: pingcap/tikv:v8.5.0
+    volumes:
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          subpath: tikv
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          subpath: tikv
+    command:
+      - --addr=0.0.0.0:20160
+      - --status-addr=0.0.0.0:20180
+      - --advertise-addr=tikv1:20160
+      - --advertise-status-addr=tikv1:20180
+      - --data-dir=/data/tikv/tikv1
+      - --pd=pd0:2379,pd1:2379,pd2:2379
+      - --log-file=/logs/tikv/tikv1.log
+    depends_on:
+      pd0:
+        condition: service_healthy
+      pd1:
+        condition: service_healthy
+      pd2:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test: /tikv-ctl --host $(hostname):20160 metrics
+      start_period: 5s
+      retries: 5
+      timeout: 10s
+
+  tikv2:
+    container_name: db-tikv2
+    hostname: tikv2
+    image: pingcap/tikv:v8.5.0
+    volumes:
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          subpath: tikv
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          subpath: tikv
+    command:
+      - --addr=0.0.0.0:20160
+      - --status-addr=0.0.0.0:20180
+      - --advertise-addr=tikv2:20160
+      - --advertise-status-addr=tikv2:20180
+      - --data-dir=/data/tikv/tikv2
+      - --pd=pd0:2379,pd1:2379,pd2:2379
+      - --log-file=/logs/tikv/tikv2.log
+    depends_on:
+      pd0:
+        condition: service_healthy
+      pd1:
+        condition: service_healthy
+      pd2:
+        condition: service_healthy
+    restart: on-failure
+    healthcheck:
+      test: /tikv-ctl --host $(hostname):20160 metrics
+      start_period: 5s
+      retries: 5
+      timeout: 10s
+
+  prometheus:
+    container_name: monitor-prometheus
+    hostname: prometheus
+    image: prom/prometheus:v3.1.0
+    user: root
+    command:
+      - --log.level=info
+      - --storage.tsdb.path=/data/prometheus
+      - --storage.tsdb.retention.time=15d
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./config/pd.rules.yml:/etc/prometheus/pd.rules.yml:ro
+      - ./config/tikv.rules.yml:/etc/prometheus/tikv.rules.yml:ro
+      - ./config/tidb.rules.yml:/etc/prometheus/tidb.rules.yml:ro
+      - type: volume
+        source: data
+        target: /data
+        volume:
+          subpath: prometheus
+    restart: on-failure
+    profiles:
+      - monitoring
+
+  grafana:
+    container_name: monitor-grafana
+    hostname: grafana
+    image: grafana/grafana:11.4.0
+    user: "0"
+    environment:
+      GF_LOG_LEVEL: error
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      GF_PATHS_CONFIG: /etc/grafana/grafana.ini
+    volumes:
+      - ./config/grafana:/etc/grafana
+      - ./config/dashboards:/tmp/dashboards
+      - type: volume
+        source: data
+        target: /var/lib/grafana
+        volume:
+          subpath: grafana
+      - type: volume
+        source: logs
+        target: /logs
+        volume:
+          subpath: grafana
+    ports:
+      - "3000:3000"
+    restart: on-failure
+    profiles:
+      - monitoring
+
+  db:
+    image: surrealdb/surrealdb:latest
+    container_name: db
+    hostname: db
+    ports:
+      - "8000:8000"
+    command:
+      - start
+      - --log=trace
+      - --user=root
+      - --pass=root
+      - tikv://pd0:2379
+    depends_on:
+      tikv0:
+        condition: service_healthy
+      tikv1:
+        condition: service_healthy
+      tikv2:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "isready"]
+      start_period: 5s
+      retries: 5
+      timeout: 10s
+
+#  bot:
+#    # From Dockerfile
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+volumes:
+  data:
+  logs:
