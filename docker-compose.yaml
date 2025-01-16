@@ -257,6 +257,9 @@ services:
     restart: on-failure
     profiles:
       - monitoring
+    depends_on:
+      volume_instantiation:
+        condition: service_completed_successfully
 
   grafana:
     container_name: monitor-grafana
@@ -285,6 +288,9 @@ services:
     restart: on-failure
     profiles:
       - monitoring
+    depends_on:
+      volume_instantiation:
+        condition: service_completed_successfully
 
   db:
     image: surrealdb/surrealdb:latest
