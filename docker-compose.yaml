@@ -293,14 +293,14 @@ services:
         condition: service_completed_successfully
 
   db:
-    image: surrealdb/surrealdb:latest
+    image: surrealdb/surrealdb:latest-dev
     container_name: db
     hostname: db
     ports:
       - "8000:8000"
     command:
       - start
-      - --log=trace
+      - --log=info
       - --user=root
       - --pass=root
       - tikv://pd0:2379
@@ -313,7 +313,7 @@ services:
         condition: service_healthy
     restart: always
     healthcheck:
-      test: ["CMD", "isready"]
+      test: /surreal is-ready | grep "OK"
       start_period: 5s
       retries: 5
       timeout: 10s
