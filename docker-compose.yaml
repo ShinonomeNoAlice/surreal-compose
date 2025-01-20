@@ -315,11 +315,6 @@ services:
       retries: 5
       timeout: 10s
 
-#  bot:
-#    # From Dockerfile
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
 volumes:
   data:
   logs:
