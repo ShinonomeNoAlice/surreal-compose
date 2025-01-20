@@ -5,8 +5,12 @@ Think of it like a distro.
 
 ## How to use
 ```sh
-# Modify to taste.
+# Modify content to taste.
 git clone https://github.com/ShinonomeNoAlice/surreal-compose
+cd surreal-compose
+# Start the stack
+chmod +x bootstrap.sh
+./bootstrap.sh
 ```
 Due to the ubiquitous nature of `docker-compose.yaml` and `config/`, I strongly recommend you to **NOT** blindly `mv surreal-compose/* .` to avoid unfortunate overwrites.
 
@@ -18,6 +22,9 @@ Due to the ubiquitous nature of `docker-compose.yaml` and `config/`, I strongly 
 - Basic `prometheus.yml` for PD and TiKV provided.
     - Blank `*.rules.yml` for convenience.
 - Blank Grafana config files and directories (`grafana.ini`, `provisions/*`) provided to make Grafana shut up in the logs.
+- Optional bootstrapping script.
+    - Grab the latest Prometheus rules for TiKV and PD from upstream.
+    - Grab the latest Grafana dashboards from upstream.
 
 ## Grafana dashboards
 - Sample dashboards for TiKV can be found [here](https://github.com/tikv/tikv/tree/master/metrics/grafana).

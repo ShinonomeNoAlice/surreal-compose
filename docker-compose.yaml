@@ -245,10 +245,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ./config/pd.rules.yml:/etc/prometheus/pd.rules.yml:ro
-      - ./config/tikv.rules.yml:/etc/prometheus/tikv.rules.yml:ro
-      - ./config/tidb.rules.yml:/etc/prometheus/tidb.rules.yml:ro
+      - ./config/prometheus:/etc/prometheus:ro
       - type: volume
         source: data
         target: /data
