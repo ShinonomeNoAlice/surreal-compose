@@ -22,11 +22,7 @@ Due to the ubiquitous nature of `docker-compose.yaml` and `config/`, I strongly 
 - Basic `prometheus.yml` for PD and TiKV provided.
     - Blank `*.rules.yml` for convenience.
 - Blank Grafana config files and directories (`grafana.ini`, `provisions/*`) provided to make Grafana shut up in the logs.
-- Optional bootstrapping script.
+- Optional bootstrapping script (all downloaded files can be found under `config`).
     - Grab the latest Prometheus rules for TiKV and PD from upstream.
     - Grab the latest Grafana dashboards from upstream.
-
-## Grafana dashboards
-- Sample dashboards for TiKV can be found [here](https://github.com/tikv/tikv/tree/master/metrics/grafana).
-- Sample dashboards for PD can be found [here](https://github.com/tikv/pd/tree/master/metrics/grafana).
-- No sample dashboards for SurrealDB (*yet*).
+    
